@@ -1,17 +1,14 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import { authenticateToken } from "./utils/checkAuth.js";
-import { registerValidation, loginValidation } from "./validations/auth.js";
-import { postCreateValidation } from "./validations/post.js";
-import * as UserController from "./controllers/userController.js";
-import * as PostController from "./controllers/postController.js";
+import authRoutes from "./routes/auth.js";
+import postsRoutes from "./routes/posts.js";
+import uploadRoutes from "./routes/upload.js";
 
 dotenv.config();
-
 const app = express();
-
 app.use(express.json());
+app.use("/uploads", express.static("uploads"));
 
 mongoose
   .connect(process.env.MONGODB_URI, {
@@ -22,29 +19,9 @@ mongoose
   .then(() => console.log("Connected to MongoDB"))
   .catch((error) => console.error("Error connecting to MongoDB:", error));
 
-app.post("/auth/login", loginValidation, UserController.login);
-app.post("/auth/register", registerValidation, UserController.register);
-app.get("/auth/me", authenticateToken, UserController.getMe);
-
-app.get("/posts", PostController.getAll);
-
-app.get("/posts/:id", PostController.getOne);
-
-app.post(
-  "/posts",
-  authenticateToken,
-  postCreateValidation,
-  PostController.create
-);
-
-app.patch(
-  "/posts/:id",
-  authenticateToken,
-  postCreateValidation,
-  PostController.updateOne
-);
-
-app.delete("/posts/:id", authenticateToken, PostController.deleteOne);
+app.use("/auth", authRoutes);
+app.use("/posts", postsRoutes);
+app.use("/upload", uploadRoutes);
 
 app.listen(3000, () => {
   console.log("Server started on port 3000");
