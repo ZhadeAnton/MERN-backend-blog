@@ -6,7 +6,6 @@ export const authenticateToken = (req, res, next) => {
   if (token) {
     try {
       const result = jwt.verify(token, process.env.JWT_SECRET);
-      console.log('result', result)
 
       req.userId = result._id;
       next();
