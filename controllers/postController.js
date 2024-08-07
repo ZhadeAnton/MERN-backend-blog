@@ -7,7 +7,26 @@ export const getAll = async (req, res) => {
       .exec();
     res.json(posts);
   } catch (err) {
-    req.status(500).json({ message: "Не удалось получить статьи" });
+    res.status(500).json({ message: "Не удалось получить статьи" });
+  }
+};
+
+export const getLastTags = async (req, res) => {
+  try {
+    const posts = await PostModel.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .exec();
+
+    const tags = await PostModel.aggregate([
+      { $unwind: "$tags" },
+      { $group: { _id: null, tags: { $addToSet: "$tags" } } },
+      { $project: { tags: 1, _id: 0 } },
+    ]);
+
+    res.status(200).json(tags[0].tags.slice(0, 5));
+  } catch (err) {
+    res.status(500).json({ message: "Не удалось получить тэги" });
   }
 };
 
@@ -26,7 +45,7 @@ export const getOne = async (req, res) => {
         }
         res.json(post);
       }
-    );
+    ).populate('user', '-passwordHash');
   } catch (err) {
     res.status(500).json({ message: "Не удалось получить статьи" });
   }

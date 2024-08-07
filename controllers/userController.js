@@ -61,6 +61,12 @@ export const login = async (req, res) => {
 };
 
 export const getMe = async (req, res) => {
+  const userId = req.userId;
+
+  if (!userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
   const user = await UserModel.findById(req.userId);
 
   if (!user) {
